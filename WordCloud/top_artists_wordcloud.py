@@ -36,6 +36,7 @@ def generate_simple_top_artist_wordcloud(input: TopArtistWordCloudInput):
     # Spotify API request for top artists
     top_artists = sp.current_user_top_artists(limit=input.number_of_artists, time_range=input.term)
 
+    # Extract the relevant information
     top_artists_info_list = [
     {
         "artist": artist["name"],
@@ -47,6 +48,7 @@ def generate_simple_top_artist_wordcloud(input: TopArtistWordCloudInput):
     }
     for idx, artist in enumerate(top_artists["items"], start=1)
 ]
+    # Generate the word frequencies
     word_frequencies = {entry["artist"]: 1 / entry["place"] for entry in top_artists_info_list}
 
     # Generate the word cloud

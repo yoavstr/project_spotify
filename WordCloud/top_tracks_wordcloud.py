@@ -45,8 +45,15 @@ def get_dominant_color(url):
 
 
 def generate_top_track_wordcloud_by_album_color(input: TopTracksWordCloudInput):
+    """This function creates a WordCloud from the user's top tracks. Inputs are:
+    - Number of tracks
+    - Term - top tracks since when? (long_term, medium_term, short_term)
+    """
+
+    # Spotify API request for top tracks
     top_tracks = sp.current_user_top_tracks(limit=input.number_of_tracks, time_range=input.term)
 
+    # Extract the relevant information
     top_tracks_info = [{"track": track["name"],
                     "artists": ", ".join(artist["name"] for artist in track["artists"]),
                     "populatity": track["popularity"],
@@ -67,7 +74,6 @@ def generate_top_track_wordcloud_by_album_color(input: TopTracksWordCloudInput):
 
     # Map each track to its cover color
     track_colors = {entry["track"]: entry["cover_color"] for entry in top_tracks_info}
-
 
     # Generate the word cloud
     wordcloud = WordCloud(
