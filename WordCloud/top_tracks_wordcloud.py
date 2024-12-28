@@ -26,7 +26,8 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id,
 
 class TopTracksWordCloudInput(BaseModel):
     number_of_tracks: int = Field(default=20, ge=10, se=50)
-    term: str = Field(pattern="^(short_term|medium_term|long_term)$")
+    term: str = Field(default="long_term", pattern="^(short_term|medium_term|long_term)$")
+    size_by: str = Field(default="favorite", pattern="^(popularity|duration|favorite)$")
 
 
 # Function to download the image from a URL
@@ -65,8 +66,14 @@ def generate_top_track_wordcloud_by_album_color(input: TopTracksWordCloudInput):
                     "place": idx + 1
                     } for idx, track in enumerate(top_tracks["items"])]
     
-    # Create a word frequency dictionary for the tracks
-    word_frequencies = {entry["track"]: 1 / entry["place"] for entry in top_tracks_info}
+    # Generate the word frequencies based on the selected size_by parameter
+    match input.size_by:
+        case "popularity":
+            word_frequencies = {entry["track"]: entry["popularity"] for entry in top_tracks_info}
+        case "duration":
+            word_frequencies = {entry["track"]: entry["track_duration"] for entry in top_tracks_info}
+        case "favorite":
+            word_frequencies = {entry["track"]: 1 / entry["place"] for entry in top_tracks_info}
 
     # Custom color function
     def color_func(word, font_size, position, orientation, random_state=None, **kwargs):
@@ -95,5 +102,5 @@ def generate_top_track_wordcloud_by_album_color(input: TopTracksWordCloudInput):
 
 
 if __name__ == "__main__":
-    input_data = TopTracksWordCloudInput(number_of_tracks=45, term="long_term")
+    input_data = TopTracksWordCloudInput(number_of_tracks=45, term="long_term", size_by="favorite")
     generate_top_track_wordcloud_by_album_color(input_data)
