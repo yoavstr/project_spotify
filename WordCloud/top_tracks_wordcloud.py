@@ -50,6 +50,7 @@ def generate_top_track_wordcloud_by_album_color(input: TopTracksWordCloudInput):
     """This function creates a WordCloud from the user's top tracks. Inputs are:
     - Number of tracks
     - Term - top tracks since when? (long_term, medium_term, short_term)
+    - Size by - how to determine the size of the word (popularity, duration, favorite)
     """
 
     # Spotify API request for top tracks
