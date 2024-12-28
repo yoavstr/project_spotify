@@ -51,6 +51,7 @@ def generate_top_track_wordcloud_by_album_color(input: TopTracksWordCloudInput):
     - Number of tracks
     - Term - top tracks since when? (long_term, medium_term, short_term)
     - Size by - how to determine the size of the word (popularity, duration, favorite)
+    - Color by album - use the dominant color of the album cover as the word color
     """
 
     # Spotify API request for top tracks
