@@ -89,7 +89,7 @@ def generate_top_track_wordcloud_by_album_color(input: TopTracksWordCloudInput):
     wordcloud = wordcloud.recolor(color_func=color_func)
 
     # Save the word cloud as an image
-    output_file = "wordcloud_top_artist.png"
+    output_file = "wordcloud_top_tracks.png"
     wordcloud.to_file(output_file)
     print(f"Word cloud saved as {output_file}")
 
