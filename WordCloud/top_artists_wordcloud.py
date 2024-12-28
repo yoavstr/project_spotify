@@ -63,7 +63,7 @@ def generate_simple_top_artist_wordcloud(input: TopArtistWordCloudInput):
     ).generate_from_frequencies(word_frequencies)
 
     # Save the word cloud as an image
-    output_file = "wordcloud.png"
+    output_file = "wordcloud_top_artists.png"
     wordcloud.to_file(output_file)
     print(f"Word cloud saved as {output_file}")
 
