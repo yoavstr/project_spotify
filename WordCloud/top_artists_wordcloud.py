@@ -59,17 +59,18 @@ def generate_simple_top_artist_wordcloud(input: TopArtistWordCloudInput):
         case "favorite":
             word_frequencies = {entry["artist"]: 1 / entry["place"] for entry in top_artists_info_list}
 
+    # https://matplotlib.org/stable/users/explain/colors/colormaps.html for colormap options
 
     # Generate the word cloud
     wordcloud = WordCloud(
         font_path="./fonts/DMSerifText-Regular.ttf",
-        width=800,
-        height=400,
+        prefer_horizontal=0.5, # 50% chance of horizontal text
+        colormap="spring", # Set the color map
+        scale=3,
+        width=1920, # 3840 × 2160 is 4K resolution
+        height=1080,
         background_color="black",
-        max_font_size=100,          # Adjust the maximum font size
-        relative_scaling=0.25,       # Reduce the impact of frequency on word size
-        # contour_width=100,            # Add a contour to help words stand out
-        # contour_color="blue"   # Set the contour color
+        relative_scaling=0.25, # Reduce the impact of frequency on word size
     ).generate_from_frequencies(word_frequencies)
 
     # Save the word cloud as an image
@@ -80,5 +81,5 @@ def generate_simple_top_artist_wordcloud(input: TopArtistWordCloudInput):
 
 if __name__ == "__main__":
 
-    input_data = TopArtistWordCloudInput(number_of_artists=45, term="long_term", size_by="favorite")
+    input_data = TopArtistWordCloudInput(number_of_artists=50, term="medium_term", size_by="favorite")
     generate_simple_top_artist_wordcloud(input_data)
