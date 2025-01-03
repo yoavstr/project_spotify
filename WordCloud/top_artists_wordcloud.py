@@ -26,6 +26,7 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id,
 class TopArtistWordCloudInput(BaseModel):
     number_of_artists: int = Field(default=20, ge=10, se=50)
     term: str = Field(pattern="^(short_term|medium_term|long_term)$")
+    size_by: str = Field(default="favorite", pattern="^(popularity|followers_count|favorite)$")
 
 
 def generate_simple_top_artist_wordcloud(input: TopArtistWordCloudInput):
@@ -48,8 +49,16 @@ def generate_simple_top_artist_wordcloud(input: TopArtistWordCloudInput):
     }
     for idx, artist in enumerate(top_artists["items"], start=1)
 ]
-    # Generate the word frequencies
-    word_frequencies = {entry["artist"]: 1 / entry["place"] for entry in top_artists_info_list}
+    
+    # Generate the word frequencies based on the selected size_by parameter
+    match input.size_by:
+        case "popularity":
+            word_frequencies = {entry["artist"]: entry["popularity"] for entry in top_artists_info_list}
+        case "followers_count":
+            word_frequencies = {entry["artist"]: entry["followers_count"] for entry in top_artists_info_list}
+        case "favorite":
+            word_frequencies = {entry["artist"]: 1 / entry["place"] for entry in top_artists_info_list}
+
 
     # Generate the word cloud
     wordcloud = WordCloud(
@@ -70,5 +79,5 @@ def generate_simple_top_artist_wordcloud(input: TopArtistWordCloudInput):
 
 if __name__ == "__main__":
 
-    input_data = TopArtistWordCloudInput(number_of_artists=45, term="long_term")
+    input_data = TopArtistWordCloudInput(number_of_artists=45, term="long_term", size_by="favorite")
     generate_simple_top_artist_wordcloud(input_data)
