@@ -62,6 +62,7 @@ def generate_simple_top_artist_wordcloud(input: TopArtistWordCloudInput):
 
     # Generate the word cloud
     wordcloud = WordCloud(
+        font_path="./fonts/DMSerifText-Regular.ttf",
         width=800,
         height=400,
         background_color="black",

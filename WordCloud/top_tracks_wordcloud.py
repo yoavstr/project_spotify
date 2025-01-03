@@ -104,6 +104,7 @@ def generate_top_track_wordcloud_by_album_color(input: TopTracksWordCloudInput):
     if input.color_by_album:
         # Generate the word cloud
         wordcloud = WordCloud(
+            font_path="./fonts/Borel-Regular.ttf",
             width=800,
             height=400,
             background_color="white",
@@ -118,6 +119,7 @@ def generate_top_track_wordcloud_by_album_color(input: TopTracksWordCloudInput):
     else:
         # Generate the word cloud
         wordcloud = WordCloud(
+            font_path="./fonts/Borel-Regular.ttf",
             width=800,
             height=400,
             background_color="black",
