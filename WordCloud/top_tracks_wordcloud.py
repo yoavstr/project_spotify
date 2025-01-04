@@ -7,6 +7,7 @@ from wordcloud import WordCloud
 import requests
 from colorthief import ColorThief
 from io import BytesIO
+import math
 
 # Loading environment variables
 load_dotenv()
@@ -45,53 +46,51 @@ def get_dominant_color(url):
     # Convert to hex
     return f"#{dominant_color[0]:02x}{dominant_color[1]:02x}{dominant_color[2]:02x}"
 
+def extract_track_info(track, idx, color_by_album=False):
+    track_info = {
+        "track": track["name"],
+        "artists": ", ".join(artist["name"] for artist in track["artists"]),
+        "popularity": track["popularity"],
+        "album_name": track["album"]["name"],
+        "track_duration_sec": track['duration_ms'] / 1000,
+        "release_date": track["album"]["release_date"],
+        "track_id": track["id"],
+        "place": idx + 1
+    }
+    if color_by_album:
+        track_info["cover_color"] = get_dominant_color(track["album"]["images"][0]["url"])
+    return track_info
+
+def generate_wordcloud(word_frequencies, track_colors=None, color_by_album=False):
+    def color_func(word, font_size, position, orientation, random_state=None, **kwargs):
+        return track_colors.get(word, "#000000") if track_colors else "#000000"
+
+    wordcloud = WordCloud(
+        font_path="./fonts/SpecialElite-Regular.ttf",
+        width=1920,
+        height=1080,
+        background_color="white" if color_by_album else "black",
+        relative_scaling=0.1,
+        contour_width=0.1,
+        contour_color="black" if color_by_album else "white",
+    ).generate_from_frequencies(word_frequencies)
+
+    if color_by_album:
+        wordcloud = wordcloud.recolor(color_func=color_func)
+
+    return wordcloud
 
 def generate_top_track_wordcloud_by_album_color(input: TopTracksWordCloudInput):
-    """This function creates a WordCloud from the user's top tracks. Inputs are:
-    - Number of tracks
-    - Term - top tracks since when? (long_term, medium_term, short_term)
-    - Size by - how to determine the size of the word (popularity, duration, favorite)
-    - Color by album - use the dominant color of the album cover as the word color
-    """
-
-    # Spotify API request for top tracks
     top_tracks = sp.current_user_top_tracks(limit=input.number_of_tracks, time_range=input.term)
 
-
-    if input.color_by_album:
-        # Extract the relevant information
-        top_tracks_info = [{"track": track["name"],
-                        "artists": ", ".join(artist["name"] for artist in track["artists"]),
-                        "popularity": track["popularity"],
-                        "album_name": track["album"]["name"],
-                        "track_duration_sec": track['duration_ms'] / 1000,
-                        "release_date": track["album"]["release_date"],
-                        "track_id": track["id"],
-                        "cover_color": get_dominant_color(top_tracks["items"][idx]["album"]["images"][0]["url"]),
-                        "place": idx + 1
-                        } for idx, track in enumerate(top_tracks["items"])]
-        
-        # Custom color function
-        def color_func(word, font_size, position, orientation, random_state=None, **kwargs):
-            return track_colors.get(word, "#000000")  # Default to black if no color is found
-
-        # Map each track to its cover color
-        track_colors = {entry["track"]: entry["cover_color"] for entry in top_tracks_info}
-
-    else:
-        # Extract the relevant information
-        top_tracks_info = [{"track": track["name"],
-                        "artists": ", ".join(artist["name"] for artist in track["artists"]),
-                        "popularity": track["popularity"],
-                        "album_name": track["album"]["name"],
-                        "track_duration_sec": track['duration_ms'] / 1000,
-                        "release_date": track["album"]["release_date"],
-                        "track_id": track["id"],
-                        "place": idx + 1
-                        } for idx, track in enumerate(top_tracks["items"])]
-        
-
+    top_tracks_info = [
+        extract_track_info(track, idx, color_by_album=input.color_by_album)
+        for idx, track in enumerate(top_tracks["items"])
+    ]
     
+    
+    # Generate the word frequencies based on the selected size_by parameter
+
     # Generate the word frequencies based on the selected size_by parameter
     match input.size_by:
         case "popularity":
@@ -99,42 +98,15 @@ def generate_top_track_wordcloud_by_album_color(input: TopTracksWordCloudInput):
         case "duration":
             word_frequencies = {entry["track"]: entry["track_duration_sec"] for entry in top_tracks_info}
         case "favorite":
-            word_frequencies = {entry["track"]: 1 / entry["place"] for entry in top_tracks_info}
-
-    if input.color_by_album:
-        # Generate the word cloud
-        wordcloud = WordCloud(
-            font_path="./fonts/Borel-Regular.ttf",
-            width=800,
-            height=400,
-            background_color="white",
-            max_font_size=100,          # Adjust the maximum font size
-            relative_scaling=0.25,       # Reduce the impact of frequency on word size
-            contour_width=0.1,            # Thickness of the outline
-            contour_color="black"       # Color of the outline (white in this case)
-        ).generate_from_frequencies(word_frequencies)
-
-        wordcloud = wordcloud.recolor(color_func=color_func)
-
-    else:
-        # Generate the word cloud
-        wordcloud = WordCloud(
-            font_path="./fonts/Borel-Regular.ttf",
-            width=800,
-            height=400,
-            background_color="black",
-            max_font_size=100,          # Adjust the maximum font size
-            relative_scaling=0.25,       # Reduce the impact of frequency on word size
-            contour_width=0.1,            # Thickness of the outline
-            contour_color="black"       # Color of the outline (white in this case)
-        ).generate_from_frequencies(word_frequencies)
-    
-    # Save the word cloud as an image
+            # Exponential decay e^(-0.5)+1
+            word_frequencies = {entry["track"]: math.e**(-0.5 * entry["place"]) + 1 for entry in top_tracks_info}
+    track_colors = {entry["track"]: entry["cover_color"] for entry in top_tracks_info} if input.color_by_album else None
+    print(word_frequencies)
+    wordcloud = generate_wordcloud(word_frequencies, track_colors, input.color_by_album)
     output_file = "wordcloud_top_tracks.png"
     wordcloud.to_file(output_file)
     print(f"Word cloud saved as {output_file}")
 
-
 if __name__ == "__main__":
-    input_data = TopTracksWordCloudInput(number_of_tracks=45, term="long_term", size_by="popularity", color_by_album=False)
+    input_data = TopTracksWordCloudInput(number_of_tracks=40, term="medium_term", size_by="favorite", color_by_album=False)
     generate_top_track_wordcloud_by_album_color(input_data)
