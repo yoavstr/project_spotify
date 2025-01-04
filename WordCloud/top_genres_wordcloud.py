@@ -1,12 +1,10 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from dotenv import load_dotenv
 import os
 from wordcloud import WordCloud
-import requests
 from collections import Counter
-import matplotlib.pyplot as plt
 
 # Loading environment variables
 load_dotenv()
