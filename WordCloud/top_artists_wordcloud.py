@@ -36,6 +36,7 @@ def generate_simple_top_artist_wordcloud(input: TopArtistWordCloudInput):
     """
     # Spotify API request for top artists
     top_artists = sp.current_user_top_artists(limit=input.number_of_artists, time_range=input.term)
+    print("Top artists retrieved with API request")
 
     # Extract the relevant information
     top_artists_info_list = [
@@ -49,6 +50,7 @@ def generate_simple_top_artist_wordcloud(input: TopArtistWordCloudInput):
     }
     for idx, artist in enumerate(top_artists["items"], start=1)
 ]
+    print("Top artists information extracted")
     
     # Generate the word frequencies based on the selected size_by parameter
     match input.size_by:
@@ -72,6 +74,7 @@ def generate_simple_top_artist_wordcloud(input: TopArtistWordCloudInput):
         background_color="black",
         relative_scaling=0.25, # Reduce the impact of frequency on word size
     ).generate_from_frequencies(word_frequencies)
+    print("Word cloud generated")
 
     # Save the word cloud as an image
     output_file = "wordcloud_top_artists.png"
